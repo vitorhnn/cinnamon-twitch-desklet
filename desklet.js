@@ -3,6 +3,7 @@ const Desklet = imports.ui.desklet;
 const Settings = imports.ui.settings;
 const St = imports.gi.St;
 const Soup = imports.gi.Soup;
+const Mainloop = imports.mainloop;
 
 
 function ThingyDesklet(metadata, desklet_id) {
@@ -15,17 +16,36 @@ ThingyDesklet.prototype = {
     
     soup: new Soup.SessionAsync(),
 
+    labels: [],
+
     _init: function(metadata, desklet_id) {
         Desklet.Desklet.prototype._init.call(this, metadata, 
 desklet_id);
 
         this.settings = new Settings.DeskletSettings(this, this.metadata["uuid"], desklet_id);
 
-        this.settings.bindProperty(Settings.BindingDirection.IN, "username", "username", function() {}, null);
+        this.settings.bindProperty(Settings.BindingDirection.IN, "username", "username", this.updateStreams, null);
 
         this.initUI();
+        this.updateStreams();
+    },
 
-        let res = Soup.Message.new("GET", "https://api.twitch.tv/kraken/users/"+ this.username +"/follows/channels");
+    on_desklet_removed: function() {
+       Mainloop.source_remove(this.timer);
+    },
+
+    updateStreams: function() {
+        // clear the desklet
+        Mainloop.source_remove(this.timer);
+        this.title.set_text("online streams for " + this.username);
+        this.labels.forEach(label => {
+            this.window.remove_actor(label);
+        });
+
+        let localUsername = this.username; // to prevent async responses from creating labels for usernames that have been changed
+                                           // this is unfortunately necessary because cinnamon doesn't wait for the user to finish inputting text into a entry.
+
+        let res = Soup.Message.new("GET", "https://api.twitch.tv/kraken/users/"+ localUsername +"/follows/channels");
         this.soup.queue_message(res, (session, message) => {
             if (message.status_code !== 200) {
                 return;
@@ -34,27 +54,29 @@ desklet_id);
             j.follows.forEach(obj => {
                 let stream = "https://api.twitch.tv/kraken/streams/" + obj.channel.name;
                 let msg = Soup.Message.new("GET", stream);
-                this.soup.queue_message(msg, (session, message) =>{
+                this.soup.queue_message(msg, (session, message) => {
                     if (message.status_code !== 200) {
                         return;
                     }
                     let k = JSON.parse(message.response_body.data);
-                    if (k.stream !== null) {
+                    if (k.stream !== null && localUsername === this.username) {
                         let lbl = new St.Label();
                         lbl.set_text(obj.channel.name + " online");
                         this.window.add_actor(lbl);
+                        this.labels.push(lbl);
                     }
                 });
             });
         });
+        this.timer = Mainloop.timeout_add_seconds(600, this.updateStreams.bind(this));
     },
 
     initUI: function() {
         this.window = new St.BoxLayout({vertical: true});
-        this.text = new St.Label();
-        this.text.set_text("online subscriptions for " + this.username);
+        this.title = new St.Label();
+        this.title.set_text("starting up...");
 
-        this.window.add_actor(this.text);
+        this.window.add_actor(this.title);
         this.setContent(this.window);
     }
 }
