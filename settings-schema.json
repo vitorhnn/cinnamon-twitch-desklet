@@ -1,0 +1,8 @@
+{
+    "username": {
+        "type": "entry",
+        "default": "vitorhnn",
+        "description": "twitch username",
+        "tooltip": "Your twitch.tv username"
+    }
+}
