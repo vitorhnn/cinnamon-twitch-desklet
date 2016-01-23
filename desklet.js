@@ -41,6 +41,7 @@ desklet_id);
         this.labels.forEach(label => {
             this.window.remove_actor(label);
         });
+        this.labels = [];
 
         let localUsername = this.username; // to prevent async responses from creating labels for usernames that have been changed
                                            // this is unfortunately necessary because cinnamon doesn't wait for the user to finish inputting text into a entry.
