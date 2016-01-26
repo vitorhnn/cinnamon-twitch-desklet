@@ -1,8 +1,18 @@
 {
     "username": {
         "type": "entry",
-        "default": "vitorhnn",
+        "default": "bobross",
         "description": "twitch username",
         "tooltip": "Your twitch.tv username"
+    },
+    "timertime": {
+        "type": "spinbutton",
+        "default": 600,
+        "min": 60,
+        "max": 7200,
+        "step": 1,
+        "units": "seconds",
+        "description": "Update time",
+        "tooltip": "How often to query the twitch api"
     }
 }

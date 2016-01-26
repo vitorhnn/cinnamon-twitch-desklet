@@ -10,7 +10,6 @@ function ThingyDesklet(metadata, desklet_id) {
     this._init(metadata, desklet_id);
 }
 
-
 ThingyDesklet.prototype = {
     __proto__: Desklet.Desklet.prototype,
     
@@ -19,12 +18,12 @@ ThingyDesklet.prototype = {
     labels: [],
 
     _init: function(metadata, desklet_id) {
-        Desklet.Desklet.prototype._init.call(this, metadata, 
-desklet_id);
+        Desklet.Desklet.prototype._init.call(this, metadata, desklet_id);
 
         this.settings = new Settings.DeskletSettings(this, this.metadata["uuid"], desklet_id);
 
         this.settings.bindProperty(Settings.BindingDirection.IN, "username", "username", this.updateStreams, null);
+        this.settings.bindProperty(Settings.BindingDirection.IN, "timertime", "timertime", ()=>{}, null);
 
         this.initUI();
         this.updateStreams();
@@ -69,7 +68,7 @@ desklet_id);
                 });
             });
         });
-        this.timer = Mainloop.timeout_add_seconds(600, this.updateStreams.bind(this));
+        this.timer = Mainloop.timeout_add_seconds(this.timertime, this.updateStreams.bind(this));
     },
 
     initUI: function() {
