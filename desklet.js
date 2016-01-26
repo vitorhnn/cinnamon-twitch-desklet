@@ -62,7 +62,7 @@ desklet_id);
                     let k = JSON.parse(message.response_body.data);
                     if (k.stream !== null && localUsername === this.username) {
                         let lbl = new St.Label();
-                        lbl.set_text(obj.channel.name + " online");
+                        lbl.set_text(obj.channel.name + " playing " + k.stream.game);
                         this.window.add_actor(lbl);
                         this.labels.push(lbl);
                     }
