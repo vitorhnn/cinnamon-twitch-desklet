@@ -1,6 +1,6 @@
 {
-	"uuid": "thingy@vitorhnn.net.br",
-	"name": "Thingy",
-	"description": "a thing",
+	"uuid": "twitch-desklet@vitorhnn.net.br",
+	"name": "Twitch follows desklet",
+	"description": "A desklet that shows you your online follows on twitch",
 	"prevent-decorations": false
 }
