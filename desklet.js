@@ -78,7 +78,7 @@ ThingyDesklet.prototype = {
                     let name = stream.channel.name
                     if(!this.streams.find(function (element) {
                         return element.name === name; 
-                    })) {
+                    }) && this.shouldNotify) {
                         // this is the weirdest identing ever
                         this.notifyOnline(name, stream.game);
                     }
