@@ -5,7 +5,6 @@ const St = imports.gi.St;
 const Soup = imports.gi.Soup;
 const Mainloop = imports.mainloop;
 
-
 function ThingyDesklet(metadata, desklet_id) {
     this._init(metadata, desklet_id);
 }
@@ -20,6 +19,7 @@ ThingyDesklet.prototype = {
 
         this.settings.bindProperty(Settings.BindingDirection.IN, "username", "username", this.updateStreams, null);
         this.settings.bindProperty(Settings.BindingDirection.IN, "timertime", "timertime", ()=>{}, null);
+        this.settings.bindProperty(Settings.BindingDirection.IN, "shouldNotify", "shouldNotify", null, null);
 
         this.soup = new Soup.SessionAsync();
         this.labels = [];
@@ -80,7 +80,7 @@ ThingyDesklet.prototype = {
                         return element.name === name; 
                     })) {
                         // this is the weirdest identing ever
-                        this.notifyOnline(name);
+                        this.notifyOnline(name, stream.game);
                     }
                     newStreams.push({"name": name, "game": stream.game});
                 });
@@ -104,9 +104,21 @@ ThingyDesklet.prototype = {
         });
     },
 
-    notifyOnline: function (name) {
-        // this will someday use the libnotify bindings for cjs
-        global.log(name + " is online!");
+    notifyOnline: function (name, game) {
+        let notify = function (title, body, icon) {
+            // These APIs are (un)documented here:
+            // https://github.com/linuxmint/Cinnamon/blob/master/js/ui/messageTray.js
+            // https://github.com/linuxmint/Cinnamon/blob/master/js/ui/main.js
+            // I reimplemented imports.ui.main.notify because the so-called "details" argument gets passed as the banner argument
+            // to imports.ui.messageTray
+            let source = new imports.ui.messageTray.SystemNotificationSource();
+            imports.ui.main.messageTray.add(source);
+            let notif = new imports.ui.messageTray.Notification(source, title, "" /* banner */, {"icon": icon, "body": body});
+            notif.setTransient(false);
+            source.notify(notif);
+        };
+        // TODO: batch multiple streamers in one notification.
+        notify(name + " is streaming!", name + " is streaming " + game, null);
     }
 }
 

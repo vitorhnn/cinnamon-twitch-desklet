@@ -14,5 +14,11 @@
         "units": "seconds",
         "description": "Update time",
         "tooltip": "How often to query the twitch api"
+    },
+    "shouldNotify": {
+        "type": "checkbox",
+        "default": "checked",
+        "description": "Show notifications",
+        "tooltip": "Enables libnotify-esque notifications when a streamer goes online"
     }
 }
