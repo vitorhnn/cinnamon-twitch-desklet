@@ -1,4 +1,7 @@
 /* vim: set ts=4 shiftwidth=4 expandtab: */
+
+"use strict"; // default for cjs, but why not
+
 const Desklet = imports.ui.desklet;
 const Settings = imports.ui.settings;
 const St = imports.gi.St;
@@ -15,7 +18,7 @@ ThingyDesklet.prototype = {
     _init: function(metadata, desklet_id) {
         Desklet.Desklet.prototype._init.call(this, metadata, desklet_id);
 
-        this.settings = new Settings.DeskletSettings(this, this.metadata["uuid"], desklet_id);
+        this.settings = new Settings.DeskletSettings(this, this.metadata.uuid, desklet_id);
 
         this.settings.bindProperty(Settings.BindingDirection.IN, "username", "username", this.updateStreams, null);
         this.settings.bindProperty(Settings.BindingDirection.IN, "timertime", "timertime", ()=>{}, null);
@@ -62,7 +65,7 @@ ThingyDesklet.prototype = {
 
             let follows = [];
             let j = JSON.parse(message.response_body.data);
-            j.follows.forEach( follow => {
+            j.follows.forEach(follow => {
                 follows.push(follow.channel.name);
             });
 
@@ -70,20 +73,23 @@ ThingyDesklet.prototype = {
             let msg = Soup.Message.new("GET", url);
             this.soup.queue_message(msg, (session, message) => {
                 if (message.status_code !== 200) {
-                    return;             
+                    return;
                 }
                 let k = JSON.parse(message.response_body.data);
                 let newStreams = [];
+                let notifyList = [];
                 k.streams.forEach(stream => {
-                    let name = stream.channel.name
-                    if(!this.streams.find(function (element) {
-                        return element.name === name; 
+                    let name = stream.channel.name;
+                    if (!this.streams.find(function (element) {
+                        return element.name === name;
                     }) && this.shouldNotify) {
                         // this is the weirdest identing ever
-                        this.notifyOnline(name, stream.game);
+                        notifyList.push({"name": name, "game": stream.game});
                     }
                     newStreams.push({"name": name, "game": stream.game});
                 });
+
+                this.notifyOnline(notifyList);
                 this.streams = newStreams;
                 this.updateUI();
             });
@@ -104,7 +110,7 @@ ThingyDesklet.prototype = {
         });
     },
 
-    notifyOnline: function (name, game) {
+    notifyOnline: function (streams) {
         let notify = function (title, body, icon) {
             // These APIs are (un)documented here:
             // https://github.com/linuxmint/Cinnamon/blob/master/js/ui/messageTray.js
@@ -117,7 +123,17 @@ ThingyDesklet.prototype = {
             notif.setTransient(false);
             source.notify(notif);
         };
-        // TODO: batch multiple streamers in one notification.
+
+        if (streams.length > 1) {
+            let body = [];
+            streams.forEach(stream => {
+                body.push(stream.name + " is streaming " + stream.game);
+            });
+            notify("The following channels are streaming:", body.join("\n"), null);
+            return;
+        }
+        let name = streams[0].name,
+            game = streams[0].game;
         notify(name + " is streaming!", name + " is streaming " + game, null);
     }
 }
