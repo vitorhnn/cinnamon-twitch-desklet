@@ -43,12 +43,20 @@ ThingyDesklet.prototype = {
         });
         this.labels = [];
 
-        this.streams.forEach(streamer => {
+        if (this.streams.length === 0) {
             let lbl = new St.Label();
-            lbl.set_text(streamer.name + " playing " + streamer.game);
+            lbl.set_text("nothing here :(");
             this.window.add_actor(lbl);
             this.labels.push(lbl);
-        });
+        }
+        else {
+            this.streams.forEach(streamer => {
+                let lbl = new St.Label();
+                lbl.set_text(streamer.name + " playing " + streamer.game);
+                this.window.add_actor(lbl);
+                this.labels.push(lbl);
+            });
+        }
     },
 
     updateStreams: function () {
@@ -130,11 +138,12 @@ ThingyDesklet.prototype = {
                 body.push(stream.name + " is streaming " + stream.game);
             });
             notify("The following channels are streaming:", body.join("\n"), null);
-            return;
         }
-        let name = streams[0].name,
-            game = streams[0].game;
-        notify(name + " is streaming!", name + " is streaming " + game, null);
+        else if (streams.length === 1) {
+            let name = streams[0].name,
+                game = streams[0].game;
+            notify(name + " is streaming!", name + " is streaming " + game, null);
+        }
     }
 }
 
