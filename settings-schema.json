@@ -5,6 +5,12 @@
         "description": "twitch username",
         "tooltip": "Your twitch.tv username"
     },
+    "apikey": {
+        "type": "entry",
+        "default": "",
+        "description": "twitch client id",
+        "tooltip": "A valid twitch api client id"
+    },
     "timertime": {
         "type": "spinbutton",
         "default": 600,

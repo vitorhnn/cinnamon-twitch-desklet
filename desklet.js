@@ -23,6 +23,7 @@ ThingyDesklet.prototype = {
         this.settings.bindProperty(Settings.BindingDirection.IN, "username", "username", this.updateStreams, null);
         this.settings.bindProperty(Settings.BindingDirection.IN, "timertime", "timertime", ()=>{}, null);
         this.settings.bindProperty(Settings.BindingDirection.IN, "shouldNotify", "shouldNotify", null, null);
+        this.settings.bindProperty(Settings.BindingDirection.IN, "apikey", "apikey", null, null);
 
         this.soup = new Soup.SessionAsync();
         this.labels = [];
@@ -34,6 +35,13 @@ ThingyDesklet.prototype = {
 
     on_desklet_removed: function() {
        Mainloop.source_remove(this.timer);
+    },
+
+    create_get_msg: function (url) {
+        let msg = Soup.Message.new("GET", url);
+        msg.request_headers.append("Client-ID", this.apikey);
+        msg.request_headers.append("Accept", "application/vnd.twitchtv.3+json");
+        return msg;
     },
 
     updateUI: function () {
@@ -65,7 +73,7 @@ ThingyDesklet.prototype = {
         let localUsername = this.username; // to prevent async responses from creating labels for usernames that have been changed
                                            // this is unfortunately necessary because cinnamon doesn't wait for the user to finish inputting text into a entry.
 
-        let res = Soup.Message.new("GET", "https://api.twitch.tv/kraken/users/" + localUsername + "/follows/channels");
+        let res = this.create_get_msg("https://api.twitch.tv/kraken/users/" + localUsername + "/follows/channels");
         this.soup.queue_message(res, (session, message) => {
             if (message.status_code !== 200) {
                 return;
@@ -78,7 +86,7 @@ ThingyDesklet.prototype = {
             });
 
             let url = "https://api.twitch.tv/kraken/streams?stream_type=live&channel=" + follows.join(",");
-            let msg = Soup.Message.new("GET", url);
+            let msg = this.create_get_msg(url);
             this.soup.queue_message(msg, (session, message) => {
                 if (message.status_code !== 200) {
                     return;
